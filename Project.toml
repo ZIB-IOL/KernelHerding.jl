@@ -1,10 +1,17 @@
 name = "KernelHerding"
 uuid = "503d40b0-dc10-47a1-b7a2-1f3e19e0574f"
-authors = ["Mathieu Besançon <mathieu.besancon@gmail.com> and contributors"]
+authors = ["Zuse Institute Berlin, AIS2T Department"]
 version = "0.1.0"
 
+[deps]
+FrankWolfe = "f55ce6ea-fdc5-4628-88c5-0087fe54bd30"
+LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
+Plots = "91a5bcdd-55d7-5caf-9e0b-520d859cae80"
+Random = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
+Statistics = "10745b16-79ce-11e8-11f9-7d13ad32a3b2"
+
 [compat]
-julia = "1"
+julia = "1.6"
 
 [extras]
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
