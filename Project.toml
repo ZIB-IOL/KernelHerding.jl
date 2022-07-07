@@ -1,0 +1,13 @@
+name = "KernelHerding"
+uuid = "503d40b0-dc10-47a1-b7a2-1f3e19e0574f"
+authors = ["Mathieu Besançon <mathieu.besancon@gmail.com> and contributors"]
+version = "0.1.0"
+
+[compat]
+julia = "1"
+
+[extras]
+Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+
+[targets]
+test = ["Test"]
