@@ -5,12 +5,12 @@ DocMeta.setdocmeta!(KernelHerding, :DocTestSetup, :(using KernelHerding); recurs
 
 makedocs(;
     modules=[KernelHerding],
-    authors="Mathieu Besançon <mathieu.besancon@gmail.com> and contributors",
-    repo="https://github.com/matbesancon/KernelHerding.jl/blob/{commit}{path}#{line}",
+    authors="Mathieu Besançon <mathieu.besancon@gmail.com> and Elias Wirth <elias.s.wirth@gmail.com>",
+    repo="https://github.com/ZIB-IOL/KernelHerding.jl/blob/{commit}{path}#{line}",
     sitename="KernelHerding.jl",
     format=Documenter.HTML(;
         prettyurls=get(ENV, "CI", "false") == "true",
-        canonical="https://matbesancon.github.io/KernelHerding.jl",
+        canonical="https://ZIB-IOL.github.io/KernelHerding.jl",
         edit_link="main",
         assets=String[],
     ),
@@ -20,6 +20,6 @@ makedocs(;
 )
 
 deploydocs(;
-    repo="github.com/matbesancon/KernelHerding.jl",
+    repo="github.com/ZIB-IOL/KernelHerding.jl",
     devbranch="main",
 )

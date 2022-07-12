@@ -4,7 +4,7 @@ CurrentModule = KernelHerding
 
 # KernelHerding
 
-Documentation for [KernelHerding](https://github.com/matbesancon/KernelHerding.jl).
+Documentation for [KernelHerding](https://github.com/ZIB-IOL/KernelHerding.jl).
 
 ```@index
 ```
