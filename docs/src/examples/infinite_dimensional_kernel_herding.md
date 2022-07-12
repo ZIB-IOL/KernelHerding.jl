@@ -6,6 +6,7 @@ EditURL = "<unknown>/examples/infinite_dimensional_kernel_herding.jl"
 using FrankWolfe
 using KernelHerding
 using Plots
+using LinearAlgebra
 
 include(joinpath(dirname(pathof(FrankWolfe)), "../examples/plot_utils.jl"))
 ````
@@ -100,7 +101,6 @@ lmo = MarginalPolytopeWahba(max_iterations_lmo)
 ### Uniform distribution
 First, we consider the uniform distribution $\rho = 1$, which results in the mean element being zero, that is, $\mu = 0$.
 
-````@example infinite_dimensional_kernel_herding
 mu = ZeroMeanElement()
 iterate = KernelHerdingIterate([1.0], [0.0])
 gradient = KernelHerdingGradient(iterate, mu)
@@ -112,7 +112,6 @@ BPFW_SS = FrankWolfe.blended_pairwise_conditional_gradient(f, grad, lmo, iterate
 data = [FW_OL[end], FW_SS[end], BPFW_SS[end - 1]]
 labels = ["FW-OL", "FW-SS", "BPFW-SS"]
 plot_trajectories(data, labels, xscalelog=true)
-````
 
 ### Non-uniform distribution
 Second, we consider a non-uniform distribution
@@ -142,7 +141,21 @@ mu = mu_from_rho(normalized_rho)
 iterate = KernelHerdingIterate([1.0], [0.0])
 gradient = KernelHerdingGradient(iterate, mu)
 f, grad = create_loss_function_gradient(mu)
+````
 
+function call_back(state, args...)
+    @info length(state.x.weights)
+    @info state.tt
+    grad_as_vert = state.gradient.x
+    @assert state.f(state.x - 10^(-5) * grad_as_vert) <= state.f(state.x)
+    print(dot(state.gradient, state.v - state.x))
+    @assert dot(state.gradient, state.v - state.x) <= eps()
+    # print(state.x)
+
+    # @assert state.f(state.x * (1 - 10^(-10)) + 10^(-10) * state.v) < state.f(state.x)
+end
+
+````@example infinite_dimensional_kernel_herding
 FW_OL = FrankWolfe.frank_wolfe(f, grad, lmo, iterate, line_search=FrankWolfe.Agnostic(), verbose=true, gradient=gradient, memory_mode=FrankWolfe.OutplaceEmphasis(), max_iteration=max_iterations, trajectory=true)
 FW_SS = FrankWolfe.frank_wolfe(f, grad, lmo, iterate, line_search=FrankWolfe.Shortstep(1), verbose=true, gradient=gradient, memory_mode=FrankWolfe.OutplaceEmphasis(), max_iteration=max_iterations, trajectory=true)
 BPFW_SS = FrankWolfe.blended_pairwise_conditional_gradient(f, grad, lmo, iterate, line_search=FrankWolfe.Shortstep(1), verbose=true, gradient=gradient, memory_mode=FrankWolfe.OutplaceEmphasis(), max_iteration=max_iterations, trajectory=true)

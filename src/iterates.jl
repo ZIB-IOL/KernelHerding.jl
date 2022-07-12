@@ -340,6 +340,7 @@ function FrankWolfe.compute_extreme_point(lmo::MarginalPolytopeWahba, direction:
             optimal_value = current_value
         end
     end
+    @assert optimal_value <= 0
     @assert(optimal_vertex !== nothing, "This should never happen.")
     @assert(0 <= only(optimal_vertex.vertices) <= 1, "Vertices have to correspond to real numbers in [0, 1].")
     return optimal_vertex
