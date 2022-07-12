@@ -13,13 +13,14 @@ include(joinpath(dirname(pathof(FrankWolfe)), "../examples/plot_utils.jl"))
 # Kernel herding: The Frank-Wolfe algorithm in an infinite-dimensional setting
 
 In this example, we illustrate how the Frank-Wolfe algorithm can be applied to infinite-dimensional kernel herding problems.
-We first introduce the general kernel herding setting before discussing kernel herding for a specific infinite-dimensional kernel.
+We first introduce the general kernel herding setting before discussing the specifics of the example setting.
 
 ## Kernel herding
 
 Kernel herding is known to be equivalent to solving a quadratic optimization problem in a
 Reproducing Kernel Hilbert Space (RKHS) with the
-Frank-Wolfe algorithm. We first explain kernel herding in general following [the paper](https://arxiv.org/pdf/2205.12838.pdf).
+Frank-Wolfe algorithm, as proved, e.g., in [Bach et al.](https://icml.cc/2012/papers/683.pdf). Here, we explain kernel herding following the presentation of [Wirth et al.](https://arxiv.org/pdf/2205.12838.pdf).
+
 Let $\mathcal{Y} \subseteq \mathbb{R}$ be an observation space, $\mathcal{H}$ a RKHS with
 inner product $\langle \cdot, \cdot \rangle_\mathcal{H}$, and
 $\Phi \colon \mathcal{Y} \to \mathcal{H}$ a feature map such that any element $x\in \mathcal{H}$ has an associated real
@@ -33,14 +34,14 @@ is defined via
 ```math
 \mathcal{C} : = \text{conv}\left(\lbrace \Phi(y) \mid y \in \mathcal{Y} \rbrace\right) \subseteq \mathcal{H}.
 ```
-We then consider a probability distribution $\rho(y)$ over $\mathcal{Y}$ with associated mean element
+We consider a probability distribution $\rho(y)$ over $\mathcal{Y}$ with associated mean element
 ```math
 \mu : = \mathbb{E}_{\rho(y)} \Phi(y)(z) = \int_{\mathcal{Y}} k(z, y) \rho(y) dy \in \mathcal{C},
 ```
-where $\mu in \mathcal{C}$ holds because the support of $p(y)$ is in $\mathcal{Y}$. [Bach et al.](https://icml.cc/2012/papers/683.pdf)
-proved that kernel herding is equivalent to solving the minimization problem
+where $\mu in \mathcal{C}$ is guaranteed because the support of $p(y)$ is in $\mathcal{Y}$.
+Then, kernel herding is equivalent to solving the minimization problem
 ```math
-\min_{x\in \mathcal{C}} f(x), \qquad \qquad (OPT-KH)
+\min_{x\in \mathcal{C}} f(x), \qquad \qquad (OPT--KH)
 ```
 where $f(x) := \frac{1}{2} \left\|x - \mu \right\|_\mathcal{H}^2$, with the Frank-Wolfe algorithm and open loop step-size rule
 $\eta_t = \frac{1}{t + 1}$.
@@ -51,7 +52,6 @@ Frank-Wolfe algorithm
 are convex combinations of the form $x_t = \sum_{i=1}^t w_i \Phi(y_i)$, where $w =(w_1, \ldots, w_t)^\intercal \in \mathbb{R}^t$
 is a weight
 vector such that $w_i \geq 0$ for all $i \in \{1, \ldots, t}$ and $\sum_{i=1}^t w_i = 1$.
-
 The iterate
 $x_t$ is the mean element of the associated empirical distribution $\tilde{p}_t(y)$ over $\mathcal{Y}$, that is,
 ```math
@@ -88,51 +88,68 @@ We always compare the Frank-Wolfe algorithm with open loop step-size rule $\eta_
 Frank-Wolfe algorithm with short-step (FW-SS), and the Blended Pairwise Frank-Wolfe algorithm with short-step (BPFW-SS).
 We do not use line search because it is equivalent to the short-step for the squared loss used in kernel herding.
 
-The LMO in the here-presented kernel herding problem is implemented using exhaustive search over $\mathcal{Y} = [0, 1]$.
+The LMO in the here-presented kernel herding problem is implemented using exhaustive search over $\mathcal{Y} = [0, 1]$, which we perform
+for twice the number of iterations we run the Frank-Wolfe algorithms for.
 
 ````@example infinite_dimensional_kernel_herding
-max_iterations = 10000
+max_iterations = 1000
 max_iterations_lmo = 2 * max_iterations
 lmo = MarginalPolytopeWahba(max_iterations_lmo)
 ````
 
-### Uniform Distribution
+### Uniform distribution
 First, we consider the uniform distribution $\rho = 1$, which results in the mean element being zero, that is, $\mu = 0$.
 
 ````@example infinite_dimensional_kernel_herding
-rho = ([0.1, 0.2, 0.3], [0., 0., 3., 0.1])
+mu = ZeroMeanElement()
+iterate = KernelHerdingIterate([1.0], [0.0])
+gradient = KernelHerdingGradient(iterate, mu)
+f, grad = create_loss_function_gradient(mu)
+
+FW_OL = FrankWolfe.frank_wolfe(f, grad, lmo, iterate, line_search=FrankWolfe.Agnostic(), verbose=true, gradient=gradient, memory_mode=FrankWolfe.OutplaceEmphasis(), max_iteration=max_iterations, trajectory=true)
+FW_SS = FrankWolfe.frank_wolfe(f, grad, lmo, iterate, line_search=FrankWolfe.Shortstep(1), verbose=true, gradient=gradient, memory_mode=FrankWolfe.OutplaceEmphasis(), max_iteration=max_iterations, trajectory=true)
+BPFW_SS = FrankWolfe.blended_pairwise_conditional_gradient(f, grad, lmo, iterate, line_search=FrankWolfe.Shortstep(1), verbose=true, gradient=gradient, memory_mode=FrankWolfe.OutplaceEmphasis(), max_iteration=max_iterations, trajectory=true)
+data = [FW_OL[end], FW_SS[end], BPFW_SS[end - 1]]
+labels = ["FW-OL", "FW-SS", "BPFW-SS"]
+plot_trajectories(data, labels, xscalelog=true)
+````
+
+### Non-uniform distribution
+Second, we consider a non-uniform distribution
+```math
+\rho(y) \backsim \left(\sum_{i = 1}^n a_i \cos(2\pi i y) + b_i \sin (2\pi i y) \right)^2,
+```
+where $n\in \mathbb{N}$, $a_i,b_i \in \mathbb{R}$ for all $i \in \{1, \ldots, n}$, and $a_i, b_i$ are chosen such that
+```math
+\int_{\mathcal{Y}} \rho(y) dy = 1.
+```
+To obtain such a $\rho$, we start with an arbitrary tuple of vectors:
+
+````@example infinite_dimensional_kernel_herding
+rho = ([0.1, 0.4, 0.2], [0., 0., 3., 0.1, 4.0])
+````
+
+We then normalize the vectors to obtain a $\rho$ that is indeed a distribution.
+
+````@example infinite_dimensional_kernel_herding
 normalized_rho = construct_rho(rho)
+````
+
+We then run the experiments.
+
+````@example infinite_dimensional_kernel_herding
 mu = mu_from_rho(normalized_rho)
 iterate = KernelHerdingIterate([1.0], [0.0])
 gradient = KernelHerdingGradient(iterate, mu)
 f, grad = create_loss_function_gradient(mu)
-````
 
-f(iterate)
-grad(gradient, iterate)
-
-v = FrankWolfe.compute_extreme_point(lmo, gradient)
-gamma = 1/2
-println("f iterate: ", f(iterate))
-updated = iterate + gamma * (v - iterate)
-println("updated: ", updated)
-println("f next: ", f(iterate + gamma * (v - iterate)))
-println("dual gap: ", dot(gradient, iterate-v))
-print(v)
-
-````@example infinite_dimensional_kernel_herding
-iterations = 1000
-
-BPFW_SS = FrankWolfe.blended_pairwise_conditional_gradient(f, grad, lmo, iterate, line_search=FrankWolfe.Shortstep(1), verbose=true, gradient=gradient, memory_mode=FrankWolfe.OutplaceEmphasis(), max_iteration=iterations, trajectory=true)
-FW_SS = FrankWolfe.frank_wolfe(f, grad, lmo, iterate, line_search=FrankWolfe.Shortstep(1), verbose=true, gradient=gradient, memory_mode=FrankWolfe.OutplaceEmphasis(), max_iteration=iterations, trajectory=true)
-FW_OL = FrankWolfe.frank_wolfe(f, grad, lmo, iterate, line_search=FrankWolfe.Agnostic(), verbose=true, gradient=gradient, memory_mode=FrankWolfe.OutplaceEmphasis(), max_iteration=iterations, trajectory=true)
-data = [BPFW_SS[end - 1], FW_SS[end], FW_OL[end]]
-labels = ["BPFW-SS", "FW-SS", "FW-Ol"]
+FW_OL = FrankWolfe.frank_wolfe(f, grad, lmo, iterate, line_search=FrankWolfe.Agnostic(), verbose=true, gradient=gradient, memory_mode=FrankWolfe.OutplaceEmphasis(), max_iteration=max_iterations, trajectory=true)
+FW_SS = FrankWolfe.frank_wolfe(f, grad, lmo, iterate, line_search=FrankWolfe.Shortstep(1), verbose=true, gradient=gradient, memory_mode=FrankWolfe.OutplaceEmphasis(), max_iteration=max_iterations, trajectory=true)
+BPFW_SS = FrankWolfe.blended_pairwise_conditional_gradient(f, grad, lmo, iterate, line_search=FrankWolfe.Shortstep(1), verbose=true, gradient=gradient, memory_mode=FrankWolfe.OutplaceEmphasis(), max_iteration=max_iterations, trajectory=true)
+data = [FW_OL[end], FW_SS[end], BPFW_SS[end - 1]]
+labels = ["FW-OL", "FW-SS", "BPFW-SS"]
 plot_trajectories(data, labels, xscalelog=true)
 ````
-
-active_set = franky[end]
-print(active_set)
 
 ---
 

@@ -22,11 +22,7 @@ function Base.:+(x1::KernelHerdingIterate, x2::KernelHerdingIterate)
         for idx in eachindex(x.vertices)
             p = x.vertices[idx]
             if p≈p2
-                # @info "found vertex $idx2"
-                # @info "vertex weights before $(x.weights)"
                 x.weights[idx] += x2.weights[idx2]
-                # @info "found vertex $idx"
-                # @info "vertex weights after $(x.weights)"
                 found = true
             end
         end
@@ -149,12 +145,13 @@ function LinearAlgebra.dot(x::KernelHerdingIterate{T}, mu::NonZeroMeanElement) w
     pad_non_zero_mean_element!(mu)
     mu_a = mu.cosine_weights
     mu_b = mu.sine_weights
+    @assert length(mu_a) == length(mu_b)
     weights = x.weights
     vertices = x.vertices
     value = 0
     for j in eachindex(weights)
         value_j = 0
-        for i in eachindex(mu.cosine_weights)
+        for i in eachindex(mu_a)
             value_j += mu_a[i] * cos(2π * i * vertices[j]) + mu_b[i] * sin(2π * i * vertices[j])
         end
         value += weights[j]*value_j
@@ -313,7 +310,7 @@ function create_loss_function_gradient(mu::MeanElement)
     function evaluate_loss(x::KernelHerdingIterate)
         l = dot(x, x)
         l += mu_squared
-        l += dot(x, mu)
+        l -= 2 * dot(x, mu)
         l *= 1 / 2
         return l
     end
