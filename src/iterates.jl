@@ -249,10 +249,10 @@ end
 
 
 
-function FrankWolfe.active_set_update_iterate_pairwise!(active_set::FrankWolfe.ActiveSet{AT, R, IT}, lambda, fw_atom, away_atom) where {AT, R, IT <: KernelHerdingIterate}
-    x = active_set.x + lambda * fw_atom - lambda * away_atom
-    copy!(active_set.x, x)
-    return active_set
+function FrankWolfe.active_set_update_iterate_pairwise!(xold::KernelHerdingIterate, lambda, fw_atom, away_atom)
+    x = xold + lambda * fw_atom - lambda * away_atom
+    copy!(xold, x)
+    return xold
 end
 
 
