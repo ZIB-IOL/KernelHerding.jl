@@ -3,6 +3,9 @@ using Test
 
 
 
+
+# Elementary operations 
+
 @testset "Addition" begin
     x = KernelHerdingIterate([0.1, 0.2, 0.7], [0.3, 0.32, 0.35])
     y = x + x
@@ -18,8 +21,17 @@ end
     x = KernelHerdingIterate([0.1, 0.2, 0.7], [0.3, 0.32, 0.35])
     y = x * 0.5
     @test y.weights == [0.05, 0.1, 0.35]
-
 end
+
+@testset "Subtraction" begin
+    x = KernelHerdingIterate([0.1, 0.9], [0.3, 0.35])
+    y = KernelHerdingIterate([0.2, 0.8], [0.3, 0.0])
+    z = x - y
+    @test z.weights == [-0.1, 0.9, -0.8]
+    @test z.vertices == [0.3, 0.35, 0.0]
+end
+
+
 
 @testset "Merging" begin
     x = KernelHerdingIterate([0.1, 0.2, 0.7], [0.3, 0.32, 0.35])
@@ -34,6 +46,8 @@ end
     KernelHerding.merge_kernel_herding_iterates(x, w, scalar)
     @test x.weights == [0.55, 0.1, 0.35]
 end
+
+# Creating μ
 
 @testset "Making rho a distribution and computing mu from rho" begin
 rho = ([0], [1])
@@ -75,6 +89,19 @@ mu = mu_from_rho(normalized_rho)
 0.00000000e+00, -1.87631822e-04,  6.89259753e-05,  0.00000000e+00,
 4.16959603e-05, -6.75474558e-05,  0.00000000e+00,  0.00000000e+00,
 0.00000000e+00,  0.00000000e+00,  0.00000000e+00,  0.00000000e+00] atol=1e-5
+end
+
+# Padding μ
+
+@testset "Padding" begin
+    mu = KernelHerding.NonZeroMeanElement([0., 0.], [1.])
+    KernelHerding.pad_non_zero_mean_element!(mu)
+    @test length(mu.cosine_weights) == length(mu.sine_weights) 
+    mu = KernelHerding.NonZeroMeanElement([0., 0., 0.5], [1.])
+    KernelHerding.pad_non_zero_mean_element!(mu)
+    @test length(mu.cosine_weights) == length(mu.sine_weights) == 3
+    @test mu.cosine_weights == [0., 0., 0.5]
+    @test mu.sine_weights == [1., 0., 0.]
 end
 
 

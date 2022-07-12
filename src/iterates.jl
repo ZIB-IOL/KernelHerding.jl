@@ -279,7 +279,7 @@ function merge_kernel_herding_iterates(x1::KernelHerdingIterate, x2::KernelHerdi
             end
         end
     end
-# @assert sum(x1.weights) ≈ 1
+@assert sum(x1.weights) ≈ 1
 @assert all(0 .<= x1.vertices .<=1)
 end
 
@@ -311,7 +311,7 @@ function create_loss_function_gradient(mu::MeanElement)
         l = dot(x, x)
         l += mu_squared
         l -= 2 * dot(x, mu)
-        l *= 1 / 2
+        l /= 2
         return l
     end
     function evaluate_gradient(g::KernelHerdingGradient, x::KernelHerdingIterate)

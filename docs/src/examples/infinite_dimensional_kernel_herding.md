@@ -101,6 +101,7 @@ lmo = MarginalPolytopeWahba(max_iterations_lmo)
 ### Uniform distribution
 First, we consider the uniform distribution $\rho = 1$, which results in the mean element being zero, that is, $\mu = 0$.
 
+````@example infinite_dimensional_kernel_herding
 mu = ZeroMeanElement()
 iterate = KernelHerdingIterate([1.0], [0.0])
 gradient = KernelHerdingGradient(iterate, mu)
@@ -112,6 +113,7 @@ BPFW_SS = FrankWolfe.blended_pairwise_conditional_gradient(f, grad, lmo, iterate
 data = [FW_OL[end], FW_SS[end], BPFW_SS[end - 1]]
 labels = ["FW-OL", "FW-SS", "BPFW-SS"]
 plot_trajectories(data, labels, xscalelog=true)
+````
 
 ### Non-uniform distribution
 Second, we consider a non-uniform distribution
