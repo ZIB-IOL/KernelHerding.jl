@@ -6,6 +6,19 @@ using Test
 
 # Elementary operations 
 
+@testset "dot" begin
+    x = KernelHerdingIterate([0.2, 0.3, 0.5], [0.1, 0, 0.7])
+    y = dot(x, x)
+    @assert y ≈ 0.022433333333333326
+    x = KernelHerdingIterate([0.5, 0.0, 0.5], [0.1, 0, 0.7])
+    y = dot(x, x)
+    @assert y ≈ 0.02333333333333333
+    x = KernelHerdingIterate([0.5, 0.0, 0.5], [0.1, 0, 0.7])
+    w = KernelHerdingIterate([0.2, 0.8], [0.5, 0.0])
+    @assert dot(w, x) == dot(x, w) 
+    @assert dot(w, x) ≈ 0.003333333333333327
+end
+
 @testset "Addition" begin
     x = KernelHerdingIterate([0.1, 0.2, 0.7], [0.3, 0.32, 0.35])
     y = x + x

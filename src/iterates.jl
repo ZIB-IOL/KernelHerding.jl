@@ -328,7 +328,6 @@ struct MarginalPolytopeWahba <: FrankWolfe.LinearMinimizationOracle
 end
 
 function FrankWolfe.compute_extreme_point(lmo::MarginalPolytopeWahba, direction::KernelHerdingGradient; kw...)
-    
     optimal_value = Inf
     optimal_vertex = nothing
     current_vertex = nothing

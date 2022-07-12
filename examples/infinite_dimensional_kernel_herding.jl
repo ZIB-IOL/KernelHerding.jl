@@ -87,7 +87,7 @@ include(joinpath(dirname(pathof(FrankWolfe)), "../examples/plot_utils.jl"))
 # The LMO in the here-presented kernel herding problem is implemented using exhaustive search over $\mathcal{Y} = [0, 1]$, which we perform
 # for twice the number of iterations we run the Frank-Wolfe algorithms for. 
 
-max_iterations = 100
+max_iterations = 10
 max_iterations_lmo = 2 * max_iterations
 lmo = MarginalPolytopeWahba(max_iterations_lmo)
 
@@ -117,7 +117,7 @@ lmo = MarginalPolytopeWahba(max_iterations_lmo)
 # ```
 # To obtain such a $\rho$, we start with an arbitrary tuple of vectors:
 
-rho = ([0.1, 0.4, 0.2], [0., 1.])
+rho = ([0.0], [1.])
 
 # We then normalize the vectors to obtain a $\rho$ that is indeed a distribution.
 normalized_rho = construct_rho(rho)
@@ -131,19 +131,24 @@ f, grad = create_loss_function_gradient(mu)
 
 function call_back(state, args...)
     println("-------------------------------------")
-    println("gamma")
-    @info state.gamma
-    println("length weights")
-    @info length(state.x.weights)
-    println("TT")
-    @info state.tt
+    @show state.x
+    @show state.v
+    @show state.gamma
+    @show length(state.x.weights)
+    @show state.tt
     grad_as_vert = state.gradient.x
-    @assert state.f(state.x * (1-state.gamma) + state.gamma * state.v) <= state.f(state.x)
-    @assert state.f(state.x - 10^(-5) * grad_as_vert) <= state.f(state.x)
-    @assert state.f(state.x - 10^(-5) * grad_as_vert) <= state.f(state.x)
-    print(dot(state.gradient, state.v - state.x))
-    @assert dot(state.gradient, state.v - state.x) <= eps()
-    # print(state.x)
+    println("iterate")
+    println("Progress?")
+    @info state.f(state.x * (1-state.gamma) + state.gamma * state.v) - state.f(state.x)
+    println("loss")
+    @info state.f(state.x)
+    # @info state.x
+    # # @assert state.f(state.x * (1-state.gamma) + state.gamma * state.v) <= state.f(state.x)
+    # @assert state.f(state.x - 10^(-5) * grad_as_vert) <= state.f(state.x)
+    # @assert state.f(state.x - 10^(-5) * grad_as_vert) <= state.f(state.x)
+    # println(dot(state.gradient, state.v - state.x))
+    # @assert dot(state.gradient, state.v - state.x) <= eps()
+    # # print(state.x)
 
     # @assert state.f(state.x * (1 - 10^(-10)) + 10^(-10) * state.v) < state.f(state.x)
 end
