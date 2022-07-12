@@ -1,5 +1,7 @@
 module KernelHerding
+using FrankWolfe
+using LinearAlgebra
 
-# Write your package code here.
-
+include("iterates.jl")
+export KernelHerdingIterate, KernelHerdingGradient, MarginalPolytopeWahba, mu_from_rho, construct_rho
 end
