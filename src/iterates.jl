@@ -350,7 +350,7 @@ end
 The degree 2 Bernoulli polynomial.
 """
 function bernoulli_polynomial(y)
-    return (1/2) * (y^2 - y + 1/6)
+    return (y^2 - y + 1/6)
 end
 
 
@@ -359,7 +359,7 @@ Evaluates the Wahba kernel over two real numbers.
 """
 function kernel_evaluation_wahba(y1, y2)
     y = y1 - y2
-    return bernoulli_polynomial(y - floor(y))
+    return (1/2) * bernoulli_polynomial(y - floor(y))
 end
 
 
