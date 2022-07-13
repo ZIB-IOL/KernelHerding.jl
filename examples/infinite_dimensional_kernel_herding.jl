@@ -2,6 +2,7 @@ using FrankWolfe
 using KernelHerding
 using Plots
 using LinearAlgebra
+using Random
 
 include(joinpath(dirname(pathof(FrankWolfe)), "../examples/plot_utils.jl"))
 
@@ -87,24 +88,27 @@ include(joinpath(dirname(pathof(FrankWolfe)), "../examples/plot_utils.jl"))
 # The LMO in the here-presented kernel herding problem is implemented using exhaustive search over $\mathcal{Y} = [0, 1]$, which we perform
 # for twice the number of iterations we run the Frank-Wolfe algorithms for. 
 
-max_iterations = 10
+max_iterations = 1000
 max_iterations_lmo = 2 * max_iterations
 lmo = MarginalPolytopeWahba(max_iterations_lmo)
 
 # ### Uniform distribution
 # First, we consider the uniform distribution $\rho = 1$, which results in the mean element being zero, that is, $\mu = 0$.
 
-# mu = ZeroMeanElement()
-# iterate = KernelHerdingIterate([1.0], [0.0])
-# gradient = KernelHerdingGradient(iterate, mu)
-# f, grad = create_loss_function_gradient(mu)
+mu = ZeroMeanElement()
+iterate = KernelHerdingIterate([1.0], [0.0])
+gradient = KernelHerdingGradient(iterate, mu)
+f, grad = create_loss_function_gradient(mu)
 
-# FW_OL = FrankWolfe.frank_wolfe(f, grad, lmo, iterate, line_search=FrankWolfe.Agnostic(), verbose=true, gradient=gradient, memory_mode=FrankWolfe.OutplaceEmphasis(), max_iteration=max_iterations, trajectory=true)
-# FW_SS = FrankWolfe.frank_wolfe(f, grad, lmo, iterate, line_search=FrankWolfe.Shortstep(1), verbose=true, gradient=gradient, memory_mode=FrankWolfe.OutplaceEmphasis(), max_iteration=max_iterations, trajectory=true)
-# BPFW_SS = FrankWolfe.blended_pairwise_conditional_gradient(f, grad, lmo, iterate, line_search=FrankWolfe.Shortstep(1), verbose=true, gradient=gradient, memory_mode=FrankWolfe.OutplaceEmphasis(), max_iteration=max_iterations, trajectory=true)
-# data = [FW_OL[end], FW_SS[end], BPFW_SS[end - 1]]
-# labels = ["FW-OL", "FW-SS", "BPFW-SS"]
-# plot_trajectories(data, labels, xscalelog=true)
+FW_OL = FrankWolfe.frank_wolfe(f, grad, lmo, iterate, line_search=FrankWolfe.Agnostic(), verbose=true, gradient=gradient, memory_mode=FrankWolfe.OutplaceEmphasis(), max_iteration=max_iterations, trajectory=true)
+FW_SS = FrankWolfe.frank_wolfe(f, grad, lmo, iterate, line_search=FrankWolfe.Shortstep(1), verbose=true, gradient=gradient, memory_mode=FrankWolfe.OutplaceEmphasis(), max_iteration=max_iterations, trajectory=true)
+BPFW_SS = FrankWolfe.blended_pairwise_conditional_gradient(f, grad, lmo, iterate, line_search=FrankWolfe.Shortstep(1), verbose=true, gradient=gradient, memory_mode=FrankWolfe.OutplaceEmphasis(), max_iteration=max_iterations, trajectory=true)
+data = [FW_OL[end], FW_SS[end], BPFW_SS[end - 1]]
+labels = ["FW-OL", "FW-SS", "BPFW-SS"]
+plot_trajectories(data, labels, xscalelog=true)
+
+# Observe that FW-OL converges faster than FW-SS and BPFW-SS. [Wirth et al.](https://arxiv.org/pdf/2205.12838.pdf) proved the accelerated convergence
+# rate of $\mathcal{O}(1/t^2)$ for FW-OL, but it remains an open problem to prove that FW-SS and BPFW-SS do not admit this accelerated rate.  
 
 # ### Non-uniform distribution
 # Second, we consider a non-uniform distribution 
@@ -117,7 +121,8 @@ lmo = MarginalPolytopeWahba(max_iterations_lmo)
 # ```
 # To obtain such a $\rho$, we start with an arbitrary tuple of vectors:
 
-rho = ([0.0], [1.])
+rho = (rand((1, 5)), rand((1, 8)))
+
 
 # We then normalize the vectors to obtain a $\rho$ that is indeed a distribution.
 normalized_rho = construct_rho(rho)
@@ -129,42 +134,16 @@ gradient = KernelHerdingGradient(iterate, mu)
 f, grad = create_loss_function_gradient(mu)
 
 
-function call_back(state, args...)
-    println("-------------------------------------")
-    println("-------------------------------------")
-    println("-------------------------------------")
-    println("-------------------------------------")
-    @show state.t
-    @show state.x
-    @show state.v
-    @show state.gamma
-    @show length(state.x.weights)
-    @show state.tt
-    println(state.f(state.x))
-    grad_as_vert = state.gradient.x
-    println("iterate")
-    println("Progress?")
-    @info state.f(state.x * (1-state.gamma) + state.gamma * state.v) - state.f(state.x)
-    println("loss")
-    @info state.f(state.x)
-    # @info state.x
-    # # @assert state.f(state.x * (1-state.gamma) + state.gamma * state.v) <= state.f(state.x)
-    # @assert state.f(state.x - 10^(-5) * grad_as_vert) <= state.f(state.x)
-    # @assert state.f(state.x - 10^(-5) * grad_as_vert) <= state.f(state.x)
-    # println(dot(state.gradient, state.v - state.x))
-    # @assert dot(state.gradient, state.v - state.x) <= eps()
-    # # print(state.x)
 
-    # @assert state.f(state.x * (1 - 10^(-10)) + 10^(-10) * state.v) < state.f(state.x)
-end
-
-
-# FW_OL = FrankWolfe.frank_wolfe(f, grad, lmo, iterate, line_search=FrankWolfe.Agnostic(), verbose=true, gradient=gradient, memory_mode=FrankWolfe.OutplaceEmphasis(), max_iteration=max_iterations, trajectory=true)
-FW_SS = FrankWolfe.frank_wolfe(f, grad, lmo, iterate, line_search=FrankWolfe.Shortstep(1), verbose=true, gradient=gradient, memory_mode=FrankWolfe.OutplaceEmphasis(), max_iteration=max_iterations, trajectory=true, callback=call_back)
-# BPFW_SS = FrankWolfe.blended_pairwise_conditional_gradient(f, grad, lmo, iterate, line_search=FrankWolfe.Shortstep(1), verbose=true, gradient=gradient, memory_mode=FrankWolfe.OutplaceEmphasis(), max_iteration=max_iterations, trajectory=true, callback=call_back)
+FW_OL = FrankWolfe.frank_wolfe(f, grad, lmo, iterate, line_search=FrankWolfe.Agnostic(), verbose=true, gradient=gradient, memory_mode=FrankWolfe.OutplaceEmphasis(), max_iteration=max_iterations, trajectory=true)
+FW_SS = FrankWolfe.frank_wolfe(f, grad, lmo, iterate, line_search=FrankWolfe.Shortstep(1), verbose=true, gradient=gradient, memory_mode=FrankWolfe.OutplaceEmphasis(), max_iteration=max_iterations, trajectory=true)
+BPFW_SS = FrankWolfe.blended_pairwise_conditional_gradient(f, grad, lmo, iterate, line_search=FrankWolfe.Shortstep(1), verbose=true, gradient=gradient, memory_mode=FrankWolfe.OutplaceEmphasis(), max_iteration=max_iterations, trajectory=true)
 data = [FW_OL[end], FW_SS[end], BPFW_SS[end - 1]]
 labels = ["FW-OL", "FW-SS", "BPFW-SS"]
 plot_trajectories(data, labels, xscalelog=true)
+
+# Observe that FW-OL converges with a rate of $\mathcal{O}(1/t^2)$, which is faster than the convergence rate of
+# $\mathcal{O}(1/t)$ admitted by FW-SS and BPFW-SS. Explaining this phenomenon of acceleration remains an open problem.  
 
 
 

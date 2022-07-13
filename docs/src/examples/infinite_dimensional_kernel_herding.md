@@ -7,6 +7,7 @@ using FrankWolfe
 using KernelHerding
 using Plots
 using LinearAlgebra
+using Random
 
 include(joinpath(dirname(pathof(FrankWolfe)), "../examples/plot_utils.jl"))
 ````
@@ -115,6 +116,9 @@ labels = ["FW-OL", "FW-SS", "BPFW-SS"]
 plot_trajectories(data, labels, xscalelog=true)
 ````
 
+Observe that FW-OL converges faster than FW-SS and BPFW-SS. [Wirth et al.](https://arxiv.org/pdf/2205.12838.pdf) proved the accelerated convergence
+rate of $\mathcal{O}(1/t^2)$ for FW-OL, but it remains an open problem to prove that FW-SS and BPFW-SS do not admit this accelerated rate.
+
 ### Non-uniform distribution
 Second, we consider a non-uniform distribution
 ```math
@@ -127,7 +131,7 @@ where $n\in \mathbb{N}$, $a_i,b_i \in \mathbb{R}$ for all $i \in \{1, \ldots, n}
 To obtain such a $\rho$, we start with an arbitrary tuple of vectors:
 
 ````@example infinite_dimensional_kernel_herding
-rho = ([0.1, 0.4, 0.2], [0., 0., 3., 0.1, 4.0])
+rho = (rand((1, 5)), rand((1, 8)))
 ````
 
 We then normalize the vectors to obtain a $\rho$ that is indeed a distribution.
@@ -143,21 +147,9 @@ mu = mu_from_rho(normalized_rho)
 iterate = KernelHerdingIterate([1.0], [0.0])
 gradient = KernelHerdingGradient(iterate, mu)
 f, grad = create_loss_function_gradient(mu)
-````
 
-function call_back(state, args...)
-    @info length(state.x.weights)
-    @info state.tt
-    grad_as_vert = state.gradient.x
-    @assert state.f(state.x - 10^(-5) * grad_as_vert) <= state.f(state.x)
-    print(dot(state.gradient, state.v - state.x))
-    @assert dot(state.gradient, state.v - state.x) <= eps()
-    # print(state.x)
 
-    # @assert state.f(state.x * (1 - 10^(-10)) + 10^(-10) * state.v) < state.f(state.x)
-end
 
-````@example infinite_dimensional_kernel_herding
 FW_OL = FrankWolfe.frank_wolfe(f, grad, lmo, iterate, line_search=FrankWolfe.Agnostic(), verbose=true, gradient=gradient, memory_mode=FrankWolfe.OutplaceEmphasis(), max_iteration=max_iterations, trajectory=true)
 FW_SS = FrankWolfe.frank_wolfe(f, grad, lmo, iterate, line_search=FrankWolfe.Shortstep(1), verbose=true, gradient=gradient, memory_mode=FrankWolfe.OutplaceEmphasis(), max_iteration=max_iterations, trajectory=true)
 BPFW_SS = FrankWolfe.blended_pairwise_conditional_gradient(f, grad, lmo, iterate, line_search=FrankWolfe.Shortstep(1), verbose=true, gradient=gradient, memory_mode=FrankWolfe.OutplaceEmphasis(), max_iteration=max_iterations, trajectory=true)
@@ -165,6 +157,9 @@ data = [FW_OL[end], FW_SS[end], BPFW_SS[end - 1]]
 labels = ["FW-OL", "FW-SS", "BPFW-SS"]
 plot_trajectories(data, labels, xscalelog=true)
 ````
+
+Observe that FW-OL converges with a rate of $\mathcal{O}(1/t^2)$, which is faster than the convergence rate of
+$\mathcal{O}(1/t)$ admitted by FW-SS and BPFW-SS. Explaining this phenomenon of acceleration remains an open problem.
 
 ---
 
