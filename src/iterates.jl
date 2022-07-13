@@ -308,10 +308,19 @@ function create_loss_function_gradient(mu::MeanElement)
     
     mu_squared = norm(mu)^2
     function evaluate_loss(x::KernelHerdingIterate)
+        println("##############################################################")
+        println("##############################################################")
         l = dot(x, x)
+        @show dot(x,x)
+        println("dot(x, x): ", dot(x, x))
         l += mu_squared
+        println("mu_squared: ", mu_squared)
         l -= 2 * dot(x, mu)
+        println("dot(x, mu): ", dot(x, mu))
         l /= 2
+        println("loss: ", l)
+        println("##############################################################")
+        println("##############################################################")
         return l
     end
     function evaluate_gradient(g::KernelHerdingGradient, x::KernelHerdingIterate)

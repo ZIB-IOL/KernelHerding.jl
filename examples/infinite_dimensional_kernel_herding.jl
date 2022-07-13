@@ -131,11 +131,16 @@ f, grad = create_loss_function_gradient(mu)
 
 function call_back(state, args...)
     println("-------------------------------------")
+    println("-------------------------------------")
+    println("-------------------------------------")
+    println("-------------------------------------")
+    @show state.t
     @show state.x
     @show state.v
     @show state.gamma
     @show length(state.x.weights)
     @show state.tt
+    println(state.f(state.x))
     grad_as_vert = state.gradient.x
     println("iterate")
     println("Progress?")
@@ -156,7 +161,7 @@ end
 
 # FW_OL = FrankWolfe.frank_wolfe(f, grad, lmo, iterate, line_search=FrankWolfe.Agnostic(), verbose=true, gradient=gradient, memory_mode=FrankWolfe.OutplaceEmphasis(), max_iteration=max_iterations, trajectory=true)
 FW_SS = FrankWolfe.frank_wolfe(f, grad, lmo, iterate, line_search=FrankWolfe.Shortstep(1), verbose=true, gradient=gradient, memory_mode=FrankWolfe.OutplaceEmphasis(), max_iteration=max_iterations, trajectory=true, callback=call_back)
-BPFW_SS = FrankWolfe.blended_pairwise_conditional_gradient(f, grad, lmo, iterate, line_search=FrankWolfe.Shortstep(1), verbose=true, gradient=gradient, memory_mode=FrankWolfe.OutplaceEmphasis(), max_iteration=max_iterations, trajectory=true, callback=call_back)
+# BPFW_SS = FrankWolfe.blended_pairwise_conditional_gradient(f, grad, lmo, iterate, line_search=FrankWolfe.Shortstep(1), verbose=true, gradient=gradient, memory_mode=FrankWolfe.OutplaceEmphasis(), max_iteration=max_iterations, trajectory=true, callback=call_back)
 data = [FW_OL[end], FW_SS[end], BPFW_SS[end - 1]]
 labels = ["FW-OL", "FW-SS", "BPFW-SS"]
 plot_trajectories(data, labels, xscalelog=true)
