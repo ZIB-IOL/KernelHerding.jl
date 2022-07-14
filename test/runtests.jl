@@ -7,6 +7,14 @@ using Test
 # Elementary operations 
 
 @testset "dot with itself" begin
+    x = KernelHerdingIterate([0.5, 0.5], [0., 0.5])
+    y = dot(x, x)
+    @assert y ≈ 0.02083333333333333
+
+    x = KernelHerdingIterate([1.0], [0.])
+    y = dot(x, x)
+    @assert y ≈ 0.08333333333333333
+
     x = KernelHerdingIterate([0.2, 0.3, 0.5], [0.1, 0, 0.7])
     y = dot(x, x)
     @assert y ≈ 0.022433333333333326
