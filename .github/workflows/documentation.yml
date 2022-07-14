@@ -19,8 +19,7 @@ jobs:
         run: |
           using Pkg
           Pkg.develop(PackageSpec(path=pwd()))
-          Pkg.develop("FrankWolfe")
-          Pkg.add("Plots")
+          Pkg.add("FrankWolfe", "Plots", "FiniteDifferences")
           Pkg.instantiate()
       - name: Build and deploy
         env:
