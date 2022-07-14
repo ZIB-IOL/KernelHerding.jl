@@ -20,6 +20,7 @@ jobs:
           using Pkg
           Pkg.develop(PackageSpec(path=pwd()))
           Pkg.develop("FrankWolfe")
+          Pkg.add("Plots")
           Pkg.instantiate()
       - name: Build and deploy
         env:
