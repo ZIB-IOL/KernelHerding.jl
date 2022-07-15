@@ -12,12 +12,12 @@ using Random
 include(joinpath(dirname(pathof(FrankWolfe)), "../examples/plot_utils.jl"))
 ````
 
-# Kernel herding: The Frank-Wolfe algorithm in an infinite-dimensional setting
+# Kernel herding: Frank-Wolfe algorithms in an infinite-dimensional setting
 
 In this example, we illustrate how the Frank-Wolfe algorithm can be applied to infinite-dimensional kernel herding problems.
 First, we present a quick primer on kernel herding.
 
-## Kernel herding
+## Kernel herding: a primer
 
 Kernel herding is known to be equivalent to solving a quadratic optimization problem in a
 Reproducing Kernel Hilbert Space (RKHS) with the
@@ -64,7 +64,7 @@ $x_t$ is the mean element of the associated empirical distribution $\tilde{\rho}
 ```math
 \tilde{\mu}_t(z) = \mathbb{E}_{\tilde{\rho}_t(y)}\Phi(y)(z) = \sum_{i=1}^tw_i \Phi(y_i)(z) = x_t(z).
 ```
-Then,
+Then, [Bach et al.](https://icml.cc/2012/papers/683.pdf) showed that
 ```math
 \sup_{x\in \mathcal{H}, \|x\|_\mathcal{H} = 1} \lvert \mathbb{E}_{\rho (y)} x(y) - \mathbb{E}_{\tilde{\rho}_t(y)} x(y) \rvert = \|\mu - \tilde{\mu}_t\|_\mathcal{H}.
 ```
@@ -73,7 +73,8 @@ expectation of $x\in \mathcal{H}$ with $\|x\|_\mathcal{H} = 1$.
 
 ## Infinite-dimensional kernel herding
 
-Now that we have introduced the general kernel herding setting, we focus on a specific kernel studied in [Bach et al.](https://icml.cc/2012/papers/683.pdf)
+Now that we have introduced the general kernel herding setting, we focus on a specific kernel studied in Wahba and later in
+[Bach et al.](https://icml.cc/2012/papers/683.pdf)
 and [Wirth et al.](https://arxiv.org/pdf/2205.12838.pdf) that maps into a Hilbert space whose ambient dimension is infinite.
 Let $\mathcal{Y} = [0, 1]$ and
 ```math
@@ -93,8 +94,8 @@ where $y,z\in [0, 1]$ and $B_2(y) = y^2 - y + \frac{1}{6}$ is the Bernoulli poly
 
 ### Set-up
 Below, we compare different Frank-Wolfe algorithms for kernel herding in the Hilbert space $\mathcal{H}$:
-the Frank-Wolfe algorithm with open loop step-size rule $\eta_t = \frac{21}{t+2}$ (FW-OL),
-Frank-Wolfe algorithm with short-step (FW-SS), and the Blended Pairwise Frank-Wolfe algorithm with short-step (BPFW-SS).
+the Frank-Wolfe algorithm with open loop step-size rule $\eta_t = \frac{2}{t+2}$ (FW-OL),
+the Frank-Wolfe algorithm with short-step (FW-SS), and the Blended Pairwise Frank-Wolfe algorithm with short-step (BPFW-SS).
 We do not use line search because it is equivalent to short-step for the squared loss used in kernel herding.
 
 The LMO in the here-presented kernel herding problem is implemented using exhaustive search over $\mathcal{Y} = [0, 1]$.
@@ -127,8 +128,8 @@ labels = ["FW-OL", "FW-SS", "BPFW-SS"]
 plot_trajectories(data, labels, xscalelog=true)
 ````
 
-Observe that FW-OL converges faster than FW-SS and BPFW-SS. [Wirth et al.](https://arxiv.org/pdf/2205.12838.pdf) proved the accelerated convergence
-rate of $\mathcal{O}(1/t^2)$ for FW-OL, but it remains an open problem to prove that FW-SS and BPFW-SS do not admit this accelerated rate.
+Observe that FW-OL converges faster than FW-SS and BPFW-SS. [Wirth et al.](https://arxiv.org/pdf/2205.12838.pdf) proved an accelerated convergence
+rate of $\mathcal{O}(1/t^2)$ for FW-OL with step-size rule $\eta_t = \frac{1}{t+1}$, but it remains an open problem to prove that FW-SS and BPFW-SS do not admit this accelerated rate.
 
 ### Non-uniform distribution
 Second, we consider a non-uniform distribution
@@ -178,6 +179,14 @@ $\mathcal{O}(1/t)$ convergence rate of FW-SS and BPFW-SS. To the best of our kno
 ## Conclusion
 
 We presented two experiments which show how to use Frank-Wolfe algorithms to solve optimization problems in infinite-dimensional Hilbert spaces.
+
+## References
+
+Bach, F., Lacoste-Julien, S. and Obozinski, G., 2012, June. On the Equivalence between Herding and Conditional Gradient Algorithms. [In ICML 2012 International Conference on Machine Learning.](https://icml.cc/2012/papers/683.pdf)
+
+Wahba, G., 1990. Spline models for observational data. Society for industrial and applied mathematics.
+
+Wirth, E., Kerdreux, T. and Pokutta, S., 2022. Acceleration of Frank-Wolfe algorithms with open loop step-sizes. [arXiv preprint arXiv:2205.12838.](https://arxiv.org/pdf/2205.12838.pdf)
 
 ---
 
