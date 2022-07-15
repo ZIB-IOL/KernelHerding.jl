@@ -26,7 +26,13 @@ include(joinpath(dirname(pathof(FrankWolfe)), "../examples/plot_utils.jl"))
 # ```math
 # x(y) = \langle x, \Phi(y)\rangle_\mathcal{H}
 # ```
-# for $y\in \mathcal{Y}$. Here, the feasible region is the marginal polytope 
+# for $y\in \mathcal{Y}$. The feature map $\Phi$ has an associated positive defininte
+# kernel
+# ```math
+# k \colon (y, z) \mapsto k(y, z) := \langle \Phi(y), \Phi(z) \rangle_\mathcal{H}
+# ```
+# for $y,z\in \mathcal{Y}$.
+# Here, the feasible region is the marginal polytope 
 # ```math
 # \mathcal{C} : = \text{conv}\left(\lbrace \Phi(y) \mid y \in \mathcal{Y} \rbrace\right) \subseteq \mathcal{H}.
 # ```
@@ -59,33 +65,36 @@ include(joinpath(dirname(pathof(FrankWolfe)), "../examples/plot_utils.jl"))
 # ```
 # Thus, with kernel herding, by finding a good bound on $\|\mu - \tilde{\mu}_t\|_\mathcal{H}$, we can bound the error when computing the 
 # expectation of $x\in \mathcal{H}$ with $\|x\|_\mathcal{H} = 1$.
+
 # ## Infinite-dimensional kernel herding
+
 # Now that we have introduced the general kernel herding setting, we focus on a specific kernel studied in [Bach et al.](https://icml.cc/2012/papers/683.pdf)
-# and [Wirth et al.](https://arxiv.org/pdf/2205.12838.pdf). 
+# and [Wirth et al.](https://arxiv.org/pdf/2205.12838.pdf) that maps into a Hilbert space whose ambient dimension is infinite.
 # Let $\mathcal{Y} = [0, 1]$ and
 # ```math
 # \mathcal{H}:= \left\lbrace x \colon [0, 1] \to \mathbb{R} \mid x(y) = \sum_{j = 1}^\infty (a_j \cos(2\pi j y) + b_j \sin(2 \pi j y)), x'(y) \in L^2([0,1]), \text{ and } a_j,b_j\in\mathbb{R}\right\rbrace.
 # ```
-# From now on, we will write $[0, 1]$ instead of $\mathcal{Y}$ to keep notation light. For $w, x \in \mathcal{H}$, 
+# For $w, x \in \mathcal{H}$, 
 # ```math
 # \langle w, x \rangle_\mathcal{H} := \int_{[0,1]} w'(y)x'(y)dy
 # ```
-# is an inner product. Thus, $(\mathcal{H}, \langle \cdot, \cdot \rangle_{\mathcal{H}})$ is a Hilbert space. 
+# defines an inner product. Thus, $(\mathcal{H}, \langle \cdot, \cdot \rangle_{\mathcal{H}})$ is a Hilbert space. 
 # [Wirth et al.](https://arxiv.org/pdf/2205.12838.pdf) showed that $\mathcal{H}$ is a Reproducing Kernel Hilbert Space (RKHS) with
 # associated kernel
 # ```math
 # k(y, z) = \frac{1}{2} B_2(| y - z |),
 # ```
 # where $y,z\in [0, 1]$ and $B_2(y) = y^2 - y + \frac{1}{6}$ is the Bernoulli polynomial.
+# 
+
 
 # ### Set-up
-# Below, we compare different Frank-Wolfe algorithm versions for kernel herding in the Hilbert space $\mathcal{H}$.
-# We always compare the Frank-Wolfe algorithm with open loop step-size rule $\eta_t = \frac{1}{t+1}$ (FW-OL),
+# Below, we compare different Frank-Wolfe algorithms for kernel herding in the Hilbert space $\mathcal{H}$:
+# the Frank-Wolfe algorithm with open loop step-size rule $\eta_t = \frac{21}{t+2}$ (FW-OL),
 # Frank-Wolfe algorithm with short-step (FW-SS), and the Blended Pairwise Frank-Wolfe algorithm with short-step (BPFW-SS).
-# We do not use line search because it is equivalent to the short-step for the squared loss used in kernel herding.
+# We do not use line search because it is equivalent to short-step for the squared loss used in kernel herding.
 
-# The LMO in the here-presented kernel herding problem is implemented using exhaustive search over $\mathcal{Y} = [0, 1]$, which we perform
-# for twice the number of iterations we run the Frank-Wolfe algorithms for. 
+# The LMO in the here-presented kernel herding problem is implemented using exhaustive search over $\mathcal{Y} = [0, 1]$.
 
 max_iterations = 1000
 max_iterations_lmo = 2 * max_iterations
@@ -102,6 +111,9 @@ f, grad = create_loss_function_gradient(mu)
 FW_OL = FrankWolfe.frank_wolfe(f, grad, lmo, iterate, line_search=FrankWolfe.Agnostic(), verbose=true, gradient=gradient, memory_mode=FrankWolfe.OutplaceEmphasis(), max_iteration=max_iterations, trajectory=true)
 FW_SS = FrankWolfe.frank_wolfe(f, grad, lmo, iterate, line_search=FrankWolfe.Shortstep(1), verbose=true, gradient=gradient, memory_mode=FrankWolfe.OutplaceEmphasis(), max_iteration=max_iterations, trajectory=true)
 BPFW_SS = FrankWolfe.blended_pairwise_conditional_gradient(f, grad, lmo, iterate, line_search=FrankWolfe.Shortstep(1), verbose=true, gradient=gradient, memory_mode=FrankWolfe.OutplaceEmphasis(), max_iteration=max_iterations, trajectory=true)
+
+# We plot the results.
+
 data = [FW_OL[end], FW_SS[end], BPFW_SS[end - 1]]
 labels = ["FW-OL", "FW-SS", "BPFW-SS"]
 plot_trajectories(data, labels, xscalelog=true)
@@ -114,13 +126,13 @@ plot_trajectories(data, labels, xscalelog=true)
 # ```math
 # \rho(y) \backsim \left(\sum_{i = 1}^n a_i \cos(2\pi i y) + b_i \sin (2\pi i y) \right)^2,
 # ```
-# where $n\in \mathbb{N}$, $a_i,b_i \in \mathbb{R}$ for all $i \in \{1, \ldots, n}$, and $a_i, b_i$ are chosen such that 
+# where $n\in \mathbb{N}$, $a_i,b_i \in \mathbb{R}$ for all $i \in \{1, \ldots, n\}$, and $a_i, b_i$ are chosen such that 
 # ```math
 # \int_{\mathcal{Y}} \rho(y) dy = 1.
 # ```
 # To obtain such a $\rho$, we start with an arbitrary tuple of vectors:
 
-rho = (rand((1, 5)), rand((1, 8)))
+rho = (rand(Float64, (1, 5)), rand(Float64, (1, 8)))
 
 
 # We then normalize the vectors to obtain a $\rho$ that is indeed a distribution.
@@ -132,20 +144,22 @@ iterate = KernelHerdingIterate([1.0], [0.0])
 gradient = KernelHerdingGradient(iterate, mu)
 f, grad = create_loss_function_gradient(mu)
 
-
-
 FW_OL = FrankWolfe.frank_wolfe(f, grad, lmo, iterate, line_search=FrankWolfe.Agnostic(), verbose=true, gradient=gradient, memory_mode=FrankWolfe.OutplaceEmphasis(), max_iteration=max_iterations, trajectory=true)
 FW_SS = FrankWolfe.frank_wolfe(f, grad, lmo, iterate, line_search=FrankWolfe.Shortstep(1), verbose=true, gradient=gradient, memory_mode=FrankWolfe.OutplaceEmphasis(), max_iteration=max_iterations, trajectory=true)
 BPFW_SS = FrankWolfe.blended_pairwise_conditional_gradient(f, grad, lmo, iterate, line_search=FrankWolfe.Shortstep(1), verbose=true, gradient=gradient, memory_mode=FrankWolfe.OutplaceEmphasis(), max_iteration=max_iterations, trajectory=true)
+
+# We plot the results.
+
 data = [FW_OL[end], FW_SS[end], BPFW_SS[end - 1]]
 labels = ["FW-OL", "FW-SS", "BPFW-SS"]
 plot_trajectories(data, labels, xscalelog=true)
 
-# Observe that FW-OL converges with a rate of $\mathcal{O}(1/t^2)$, which is faster than the convergence rate of
-# $\mathcal{O}(1/t)$ admitted by FW-SS and BPFW-SS. Explaining this phenomenon of acceleration remains an open problem.  
+# Observe that FW-OL converges with a rate of $\mathcal{O}(1/t^2)$, which is faster than the 
+# $\mathcal{O}(1/t)$ convergence rate of FW-SS and BPFW-SS. To the best of our knowledge, an explanation for this acceleration is yet to be given.
 
+# ## Conclusion
 
-
+# We presented two experiments which show how to use Frank-Wolfe algorithms to solve optimization problems in infinite-dimensional Hilbert spaces.
 
 
 

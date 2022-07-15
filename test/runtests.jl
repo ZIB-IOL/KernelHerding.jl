@@ -1,9 +1,6 @@
 using KernelHerding
 using Test
 
-
-
-
 # Elementary operations 
 
 @testset "dot with itself" begin
@@ -83,7 +80,7 @@ end
 
 # Creating μ
 
-@testset "Making rho a distribution and computing mu from rho" begin
+@testset "Making ρ a distribution and computing μ from ρ" begin
 rho = ([0], [1])
 normalized_rho = construct_rho(rho)
 @test normalized_rho[1] == [0.0]
