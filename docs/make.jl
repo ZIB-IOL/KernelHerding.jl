@@ -9,9 +9,6 @@ using Literate, Test
 
 DocMeta.setdocmeta!(KernelHerding, :DocTestSetup, :(using KernelHerding); recursive=true)
 
-
-
-
 EXAMPLE_DIR = joinpath(dirname(@__DIR__), "examples")
 DOCS_EXAMPLE_DIR = joinpath(@__DIR__, "src", "examples")
 DOCS_REFERENCE_DIR = joinpath(@__DIR__, "src", "reference")
@@ -59,12 +56,12 @@ makedocs(;
     pages=[
         "Home" => "index.md",
         "Examples" => [joinpath("examples", f) for f in file_list(DOCS_EXAMPLE_DIR, ".md")],
-        "API reference" =>
-            [joinpath("reference", f) for f in file_list(DOCS_REFERENCE_DIR, ".md")],
+        "API reference" => "reference.md",
     ],
 )
 
 deploydocs(;
     repo="github.com/ZIB-IOL/KernelHerding.jl",
     devbranch="main",
+    push_preview=true,
 )

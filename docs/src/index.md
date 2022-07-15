@@ -6,9 +6,7 @@ CurrentModule = KernelHerding
 
 Documentation for [KernelHerding](https://github.com/ZIB-IOL/KernelHerding.jl).
 
-```@index
-```
+See the example for a walkthrough.
 
-```@autodocs
-Modules = [KernelHerding]
+```@index
 ```
