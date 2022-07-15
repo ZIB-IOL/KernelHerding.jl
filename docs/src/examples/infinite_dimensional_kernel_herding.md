@@ -15,13 +15,13 @@ include(joinpath(dirname(pathof(FrankWolfe)), "../examples/plot_utils.jl"))
 # Kernel herding: The Frank-Wolfe algorithm in an infinite-dimensional setting
 
 In this example, we illustrate how the Frank-Wolfe algorithm can be applied to infinite-dimensional kernel herding problems.
-We first introduce the general kernel herding setting before discussing the specifics of the example setting.
+First, we present a quick primer on kernel herding.
 
 ## Kernel herding
 
 Kernel herding is known to be equivalent to solving a quadratic optimization problem in a
 Reproducing Kernel Hilbert Space (RKHS) with the
-Frank-Wolfe algorithm, as proved, e.g., in [Bach et al.](https://icml.cc/2012/papers/683.pdf). Here, we explain kernel herding following the presentation of [Wirth et al.](https://arxiv.org/pdf/2205.12838.pdf).
+Frank-Wolfe algorithm ([Bach et al.](https://icml.cc/2012/papers/683.pdf)). Here, we explain kernel herding following the presentation of [Wirth et al.](https://arxiv.org/pdf/2205.12838.pdf).
 
 Let $\mathcal{Y} \subseteq \mathbb{R}$ be an observation space, $\mathcal{H}$ a RKHS with
 inner product $\langle \cdot, \cdot \rangle_\mathcal{H}$, and
@@ -31,31 +31,30 @@ function defined via
 ```math
 x(y) = \langle x, \Phi(y)\rangle_\mathcal{H}
 ```
-for $y\in \mathcal{Y}$. The feasible region in kernel herding is usually the marginal polytope $\mathcal{C}\subseteq \mathcal{H}$, which
-is defined via
+for $y\in \mathcal{Y}$. Here, the feasible region is the marginal polytope
 ```math
 \mathcal{C} : = \text{conv}\left(\lbrace \Phi(y) \mid y \in \mathcal{Y} \rbrace\right) \subseteq \mathcal{H}.
 ```
 We consider a probability distribution $\rho(y)$ over $\mathcal{Y}$ with associated mean element
 ```math
-\mu : = \mathbb{E}_{\rho(y)} \Phi(y)(z) = \int_{\mathcal{Y}} k(z, y) \rho(y) dy \in \mathcal{C},
+\mu(z) : = \mathbb{E}_{\rho(y)} \Phi(y)(z) = \int_{\mathcal{Y}} k(z, y) \rho(y) dy \in \mathcal{C},
 ```
-where $\mu in \mathcal{C}$ is guaranteed because the support of $p(y)$ is in $\mathcal{Y}$.
+where $\mu \in \mathcal{C}$ due to the support of $p(y)$ being in $\mathcal{Y}$.
 Then, kernel herding is equivalent to solving the minimization problem
 ```math
-\min_{x\in \mathcal{C}} f(x), \qquad \qquad (OPT--KH)
+\min_{x\in \mathcal{C}} f(x), \qquad \qquad \text{(OPT-KH)}
 ```
 where $f(x) := \frac{1}{2} \left\|x - \mu \right\|_\mathcal{H}^2$, with the Frank-Wolfe algorithm and open loop step-size rule
 $\eta_t = \frac{1}{t + 1}$.
 The well-definedness of kernel herding is guaranteed if there exists a constant $R > 0$ such that
 $\|\Phi(y)\|_\mathcal{H} = R$ for all $y\in \mathcal{Y}$.
-Moreover, all extreme points of $\mathcal{C}$ are of the form $\Phi(y)$ for $y\in \mathcal{Y}$. Thus, iterates constructed with the
+In that case, all extreme points of $\mathcal{C}$ are of the form $\Phi(y)$ for $y\in \mathcal{Y}$. Thus, iterates constructed with the
 Frank-Wolfe algorithm
 are convex combinations of the form $x_t = \sum_{i=1}^t w_i \Phi(y_i)$, where $w =(w_1, \ldots, w_t)^\intercal \in \mathbb{R}^t$
 is a weight
-vector such that $w_i \geq 0$ for all $i \in \{1, \ldots, t}$ and $\sum_{i=1}^t w_i = 1$.
-The iterate
-$x_t$ is the mean element of the associated empirical distribution $\tilde{p}_t(y)$ over $\mathcal{Y}$, that is,
+vector such that $w_i \geq 0$ for all $i \in \{1, \ldots, t\}$ and $\sum_{i=1}^t w_i = 1$.
+Observe that the iterate
+$x_t$ is the mean element of the associated empirical distribution $\tilde{\rho}_t(y)$ over $\mathcal{Y}$, that is,
 ```math
 \tilde{\mu}_t(z) = \mathbb{E}_{\tilde{\rho}_t(y)}\Phi(y)(z) = \sum_{i=1}^tw_i \Phi(y_i)(z) = x_t(z).
 ```
