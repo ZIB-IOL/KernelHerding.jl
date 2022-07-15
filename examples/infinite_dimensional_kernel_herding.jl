@@ -10,13 +10,13 @@ include(joinpath(dirname(pathof(FrankWolfe)), "../examples/plot_utils.jl"))
 # # Kernel herding: The Frank-Wolfe algorithm in an infinite-dimensional setting
 
 # In this example, we illustrate how the Frank-Wolfe algorithm can be applied to infinite-dimensional kernel herding problems.
-# We first introduce the general kernel herding setting before discussing the specifics of the example setting.
+# First, we present a quick primer on kernel herding.
 
 # ## Kernel herding
 
 # Kernel herding is known to be equivalent to solving a quadratic optimization problem in a
 # Reproducing Kernel Hilbert Space (RKHS) with the 
-# Frank-Wolfe algorithm, as proved, e.g., in [Bach et al.](https://icml.cc/2012/papers/683.pdf). Here, we explain kernel herding following the presentation of [Wirth et al.](https://arxiv.org/pdf/2205.12838.pdf).
+# Frank-Wolfe algorithm ([Bach et al.](https://icml.cc/2012/papers/683.pdf)). Here, we explain kernel herding following the presentation of [Wirth et al.](https://arxiv.org/pdf/2205.12838.pdf).
 
 # Let $\mathcal{Y} \subseteq \mathbb{R}$ be an observation space, $\mathcal{H}$ a RKHS with 
 # inner product $\langle \cdot, \cdot \rangle_\mathcal{H}$, and 
@@ -144,6 +144,7 @@ plot_trajectories(data, labels, xscalelog=true)
 
 # Observe that FW-OL converges with a rate of $\mathcal{O}(1/t^2)$, which is faster than the convergence rate of
 # $\mathcal{O}(1/t)$ admitted by FW-SS and BPFW-SS. Explaining this phenomenon of acceleration remains an open problem.  
+
 
 
 
