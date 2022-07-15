@@ -1,7 +1,5 @@
-
-
 """
-Infinite dimensional iterate for kernel herding.
+Kernel herding iterate.
 """
 struct KernelHerdingIterate{T}
     weights::Vector{T}
@@ -43,6 +41,9 @@ function Base.:*(x::KernelHerdingIterate, scalar::Real)
     return w
 end
 
+"""
+Multiplication for KernelHerdingIterate, different order.
+"""
 function Base.:*(scalar::Real, x::KernelHerdingIterate)
     w = copy(x)
     w.weights .*= scalar
@@ -56,38 +57,30 @@ function Base.:-(x1::KernelHerdingIterate, x2::KernelHerdingIterate)
     return x1 + (-1)*x2
 end
 
-
-
-
-
-
-
-# # Different types of distributions
-
+# # Different types of MeanElements
 
 """
-MeanElement must implement dot with a functional.
+MeanElement μ must implement dot with a functional.
 """
 abstract type MeanElement
 end
 
-
-
-
 """
-mu = 0.
+μ = 0.
 """
 struct ZeroMeanElement <: MeanElement
 end
 
 """
-mu =/= 0.
+μ =/= 0.
 """
 struct NonZeroMeanElement{T} <: MeanElement
     cosine_weights::Vector{T}
     sine_weights::Vector{T}
 end
 
+
+# # Scalar products, norms, and auxiliary functions
 
 """
 Scalar product for two KernelHerdingIterates.
@@ -103,15 +96,12 @@ function LinearAlgebra.dot(x1::KernelHerdingIterate, x2::KernelHerdingIterate)
     return scalar_product_matrices
 end
 
-
 """
 Scalar product for KernelHerdingIterate with ZeroMeanElement.
 """
 function LinearAlgebra.dot(x::KernelHerdingIterate{T}, mu::ZeroMeanElement) where T
     return zero(T)
 end
-
-
 
 """
 Norm of ZeroMeanElement, corresponds to ||µ||.
@@ -136,7 +126,6 @@ function pad_non_zero_mean_element!(mu::NonZeroMeanElement)
         end
     end
 end
-
 
 """
 Scalar product for KernelHerdingIterate with NonZeroMeanElement.
@@ -177,7 +166,7 @@ end
 
 
 
-# # Technical replacements for the infinite-dimensional kernel herding setting.
+# # Technical replacements for the infinite-dimensional kernel herding setting
 
 function Base.similar(x::KernelHerdingIterate, ::Type{T}) where T
     return KernelHerdingIterate(similar(x.weights, T), similar(x.vertices, T))
@@ -212,14 +201,12 @@ function Base.empty!(active_set::FrankWolfe.ActiveSet{AT,R,IT}) where {AT, R, IT
     return active_set
 end
 
-
 function FrankWolfe.active_set_initialize!(active_set::FrankWolfe.ActiveSet{AT,R,IT}, v::KernelHerdingIterate) where {AT, R, IT <: KernelHerdingIterate}
     empty!(active_set)
     push!(active_set, (one(R), v))
     FrankWolfe.compute_active_set_iterate!(active_set)
     return active_set
 end
-
 
 function FrankWolfe.active_set_update!(active_set::FrankWolfe.ActiveSet{AT, R, IT}, lambda, atom, renorm=true, idx=nothing) where {AT, R, IT <: KernelHerdingIterate}
     
@@ -244,16 +231,11 @@ function FrankWolfe.active_set_update!(active_set::FrankWolfe.ActiveSet{AT, R, I
     return active_set
 end
 
-
-
 function FrankWolfe.active_set_update_iterate_pairwise!(xold::KernelHerdingIterate, lambda, fw_atom, away_atom)
     x = xold + lambda * fw_atom - lambda * away_atom
     copy!(xold, x)
     return xold
 end
-
-
-
 
 function merge_kernel_herding_iterates(x1::KernelHerdingIterate, x2::KernelHerdingIterate, scalar)
     @assert(0 <= scalar <= 1, "Scalar should be in [0, 1].")
@@ -292,18 +274,30 @@ function Base.copy!(x::KernelHerdingIterate{T}, y::KernelHerdingIterate{T}) wher
     copy!(x.vertices, y.vertices)
 end
 
+# Gradient, loss, and extreme point computations
 
+"""
+The gradient < x - μ, . > is represented by x and μ.
+"""
 mutable struct KernelHerdingGradient{T, D <: MeanElement}
     x:: KernelHerdingIterate{T}
     mu:: D
 end
 
+"""
+Scalar product for KernelHerdingIterate with KernelHerdingGradient.
+"""
 function LinearAlgebra.dot(x::KernelHerdingIterate, g::KernelHerdingGradient)
     scalar_product = dot(g.x, x)
     scalar_product -= dot(g.mu, x)
     return scalar_product
 end
 
+"""
+Creates the loss function and the gradient function, given a MeanElement μ, that is,
+    1/2 || x - μ ||_H²      and     < x - μ, . >,
+respectively.
+"""
 function create_loss_function_gradient(mu::MeanElement)
     
     mu_squared = norm(mu)^2
@@ -322,11 +316,16 @@ function create_loss_function_gradient(mu::MeanElement)
     return evaluate_loss, evaluate_gradient
 end
 
-
+"""
+The marginal polytope of the Wahba kernel.
+"""
 struct MarginalPolytopeWahba <: FrankWolfe.LinearMinimizationOracle
     number_iterations:: Int
 end
 
+"""
+Computes the extreme point in the Frank-Wolfe algorithm for kernel herding in Wahba's kernel.
+"""
 function FrankWolfe.compute_extreme_point(lmo::MarginalPolytopeWahba, direction::KernelHerdingGradient; kw...)
     optimal_value = Inf
     optimal_vertex = nothing
@@ -345,14 +344,12 @@ function FrankWolfe.compute_extreme_point(lmo::MarginalPolytopeWahba, direction:
     return optimal_vertex
 end
 
-
 """
-The degree 2 Bernoulli polynomial.
+The degree-2 Bernoulli polynomial.
 """
 function bernoulli_polynomial(y)
     return (y^2 - y + 1/6)
 end
-
 
 """
 Evaluates the Wahba kernel over two real numbers.
@@ -361,7 +358,6 @@ function kernel_evaluation_wahba(y1, y2)
     y = y1 - y2
     return (1/2) * bernoulli_polynomial(y - floor(y))
 end
-
 
 """
 Given rho =(rho_a, rho_b), returns a normalized_rho such that normalized_rho is a valid distribution.
