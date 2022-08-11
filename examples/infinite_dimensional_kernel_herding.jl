@@ -1,5 +1,4 @@
 using FrankWolfe
-using KernelHerding
 using Plots
 using LinearAlgebra
 using Random
@@ -61,7 +60,7 @@ include(joinpath(dirname(pathof(FrankWolfe)), "../examples/plot_utils.jl"))
 # ```
 # Then, [Bach et al.](https://icml.cc/2012/papers/683.pdf) showed that
 # ```math
-# \sup_{x\in \mathcal{H}, \|x\|_\mathcal{H} = 1} \lvert \mathbb{E}_{\rho (y)} x(y) - \mathbb{E}_{\tilde{\rho}_t(y)} x(y) \rvert = \|\mu - \tilde{\mu}_t\|_\mathcal{H}.
+# \sup_{x\in \mathcal{H}, \|x\|_\mathcal{H} = 1} \lvert \mathbb{E}_{\rho (y)} [x(y)] - \mathbb{E}_{\tilde{\rho}_t(y)} [x(y)] \rvert = \|\mu - \tilde{\mu}_t\|_\mathcal{H}.
 # ```
 # Thus, with kernel herding, by finding a good bound on $\|\mu - \tilde{\mu}_t\|_\mathcal{H}$, we can bound the error when computing the 
 # expectation of $x\in \mathcal{H}$ with $\|x\|_\mathcal{H} = 1$.
@@ -95,8 +94,8 @@ include(joinpath(dirname(pathof(FrankWolfe)), "../examples/plot_utils.jl"))
 
 # The LMO in the here-presented kernel herding problem is implemented using exhaustive search over $\mathcal{Y} = [0, 1]$.
 
-max_iterations = 1000
-max_iterations_lmo = 2 * max_iterations
+max_iterations = 2000
+max_iterations_lmo = 1.5 * max_iterations
 lmo = MarginalPolytopeWahba(max_iterations_lmo)
 
 # ### Uniform distribution
