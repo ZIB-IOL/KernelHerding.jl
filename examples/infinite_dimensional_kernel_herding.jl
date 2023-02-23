@@ -2,6 +2,7 @@ using FrankWolfe
 using Plots
 using LinearAlgebra
 using Random
+using KernelHerding
 
 include(joinpath(dirname(pathof(FrankWolfe)), "../examples/plot_utils.jl"))
 
@@ -166,7 +167,7 @@ plot_trajectories(data, labels, xscalelog=true)
 
 # Wahba, G., 1990. Spline models for observational data. Society for industrial and applied mathematics.
 
-# Wirth, E., Kerdreux, T. and Pokutta, S., 2022. Acceleration of Frank-Wolfe algorithms with open loop step-sizes. [arXiv preprint arXiv:2205.12838.](https://arxiv.org/pdf/2205.12838.pdf)
+# Wirth, E., Kerdreux, T. and Pokutta, S., 2022. Acceleration of Frank-Wolfe Algorithms with Open-Loop Step-Sizes. [arXiv preprint arXiv:2205.12838.](https://arxiv.org/pdf/2205.12838.pdf)
 
 
 
