@@ -189,6 +189,7 @@ function FrankWolfe.compute_active_set_iterate!(active_set::FrankWolfe.ActiveSet
         push!(active_set.x.weights, active_set.weights[idx])
         push!(active_set.x.vertices, only(active_set.atoms[idx].vertices))
     end
+    return active_set.x
 end
 
 function Base.empty!(active_set::FrankWolfe.ActiveSet{AT,R,IT}) where {AT, R, IT <: KernelHerdingIterate}
