@@ -1,5 +1,6 @@
 using KernelHerding
 using Test
+using LinearAlgebra
 
 # Elementary operations 
 
