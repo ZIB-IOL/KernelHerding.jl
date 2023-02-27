@@ -95,7 +95,7 @@ include(joinpath(dirname(pathof(FrankWolfe)), "../examples/plot_utils.jl"))
 
 # The LMO in the here-presented kernel herding problem is implemented using exhaustive search over $\mathcal{Y} = [0, 1]$.
 
-max_iterations = 2000
+max_iterations = 200
 max_iterations_lmo = 1.5 * max_iterations
 lmo = MarginalPolytopeWahba(max_iterations_lmo)
 
